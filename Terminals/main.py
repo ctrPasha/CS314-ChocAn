@@ -3,6 +3,9 @@ from Operator.operator import Operator
 
         
 def main():
+    run_main_menu()
+
+def run_main_menu():
     # Main Terminal Interface (main menu)    
     option = 0
 
@@ -28,7 +31,7 @@ def main():
                 pass
     
     print("Exiting...")
-    
+        
     
  
 def get_option() -> int:
