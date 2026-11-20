@@ -77,6 +77,20 @@ def update_member(member_id: str, status: str, person: shared_models.PersonData)
         # TODO better exception handling
 
 
+def remove_member(member_id: str) -> None:
+    try:
+        id_int = int(shared_models.strip_leading_zeroes(member_id))
+        with db.atomic():
+            member = Members.get_by_id(member_id)
+            member.delete_instance()
+
+    except ValueError | TypeError:
+        raise ValueError(f"Could not convert {member_id} to integer.")
+
+    except peewee.DoesNotExist as e:
+        raise ValueError("No member with that ID exists.")
+    
+
 #---------------------------------#
 # Get Add/Update/Remove Providers #
 #---------------------------------#
@@ -128,3 +142,16 @@ def update_provider(provider_id: str, person: shared_models.PersonData) -> None:
     except peewee.IntegrityError as e:
         raise ValueError("Violated database model.") from e
         # TODO better exception handling
+
+
+def remove_provider(provider_id: str) -> None:
+    try:
+        with db.atomic():
+            provider = Providers.get_by_id(provider_id)
+            provider.delete_instance()
+
+    except ValueError | TypeError:
+        raise ValueError(f"Could not convert {provider_id} to integer.")
+
+    except peewee.DoesNotExist as e:
+        raise ValueError("No provider with that ID exists.")
