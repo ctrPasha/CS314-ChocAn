@@ -39,10 +39,13 @@ class Operator:
                     city = input("Enter member's city: ")
                     state = input("Enter member's state (2 letters): ")
                     zip_code = input("Enter member's zip code: ")                        
-                    
-                    #operator_service.add_member(name, street_address,
-                    #   city, state, zip_code)
-                
+                    """
+                    if operator_service.add_member(name, street_address,
+                       city, state, zip_code) is not False:
+                        print("Member successfuly added.")
+                    else:
+                        print("Failed to add. Try again.")
+                    """
                 case 2:
                     print("You chose to remove member.")
                     member_id = input("Enter member number (9 digits): ")
@@ -76,8 +79,11 @@ class Operator:
                     provider_zipcode = input("Enter provider's zipcode: ")
                     
                     """
-                    operator_service.add_provider(provider_name, provider_address, provider_city,
-                        provider_state, provider_zipcode)
+                    if operator_service.add_provider(provider_name, provider_address, provider_city,
+                        provider_state, provider_zipcode) is not False:
+                        print("Provider successfuly added.")
+                    else:
+                        print("Failed to add.")
                     """
                 case 5:
                     print("You chose to remove provider.")
