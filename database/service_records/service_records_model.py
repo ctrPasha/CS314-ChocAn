@@ -1,6 +1,5 @@
 import datetime
-
-from peewee import Check, DateTimeField, CharField, DateField, ForeignKeyField, DoubleField, AutoField
+from peewee import BooleanField, Check, DateTimeField, CharField, DateField, ForeignKeyField, DoubleField, AutoField
 from database.base_model import BaseModel
 from database.members.members_model import Members
 from database.providers.providers_model import Providers
@@ -48,7 +47,6 @@ class ServiceRecords(BaseModel):
 		]
 	)
     
+    is_deleted = BooleanField(default = False, constraints = [Check("is_deleted IN (0, 1)")])   
     class Meta:
         table_name = "ServiceRecords"
-    
-    
