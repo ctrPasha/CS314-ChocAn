@@ -1,4 +1,4 @@
-from peewee import Check, CharField
+from peewee import BooleanField, Check, CharField
 from database.base_model import BaseModel
 
 class Providers(BaseModel):
@@ -44,6 +44,13 @@ class Providers(BaseModel):
         constraints= [
 			Check("LENGTH(zip_code) = 5"),
 			Check("zip_code NOT GLOB '*[^0-9]*'"),
+		]
+	)
+    
+    is_deleted = BooleanField(
+		default = False,
+		constraints = [
+			Check("is_deleted IN (0, 1)")
 		]
 	)
     
