@@ -1,18 +1,6 @@
-from typing import Annotated
-from dataclasses import dataclass
+from typing import Annotated, Optional
 from enum import StrEnum
 from pydantic import BaseModel, Field, BeforeValidator
-
-#--------------------------------------#
-# Dataclasses for easier data transfer #
-#--------------------------------------#
-@dataclass
-class PersonData:
-    name: str
-    street_address: str
-    city: str
-    state: str
-    zip_code: str
 
 #--------------------------#
 # Internal data validation #
@@ -58,3 +46,18 @@ class PersonSchema(BaseModel):
         max_length=5,
         pattern=r'^\d*$'
     )
+
+
+class MemberSchema(PersonSchema):
+    """
+    Pydantic schema for a ChocAn member.
+    """
+    member_id: Optional[IdNumberType] = None
+    status: MemberStatus
+
+
+class ProviderSchema(PersonSchema):
+    """
+    Pydantic schema for a ChocAn provider.
+    """
+    provider_id: Optional[IdNumberType] = None

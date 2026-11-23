@@ -2,156 +2,127 @@
 This service provides an interface to add, remove, and update providers and members. 
 """
 from dataclasses import asdict
-from typing import Optional
-import pydantic
-import peewee
+from peewee import PeeweeException
 
-from data_center import shared_models
-from database.members.members_model import Members
-from database.providers.providers_model import Providers
-from database.connection import db
-
-class MemberSchema(shared_models.PersonSchema):
-    """
-    Pydantic schema for a ChocAn member.
-    """
-    member_id: Optional[shared_models.IdNumberType] = None
-    status: shared_models.MemberStatus
-
-
-class ProviderSchema(shared_models.PersonSchema):
-    """
-    Pydantic schema for a ChocAn provider.
-    """
-    provider_id: Optional[shared_models.IdNumberType] = None
-
+from controllers import member_controllers, providers_controller
+import dataclasses as dc
+from exceptions import (
+    ProviderNotFound,
+    MemberNotFound,
+    FieldValueError,
+    DatabaseError
+)
 
 #-------------------------------#
 # Get/Add/Update/Remove Members #
 #-------------------------------#
 
 def get_members() -> list[dict]:
-    with db.atomic():
-        members = list(Members.select().dicts())
-        
-    return members
+    raise NotImplementedError("Not implemented yet!")
 
 
-def add_member(status: str, person: shared_models.PersonData) -> None:
-    try:
-        new_member = MemberSchema(status=status, **asdict(person))  # validation
-
-        with db.atomic():
-            Members.create(**new_member.model_dump())
-
-    except pydantic.ValidationError as e:
-        raise ValueError("Violated pydantic model") from e
-        # TODO better exception handling
-
-    except peewee.IntegrityError as e:
-        raise ValueError("Violated database model") from e
-        # TODO better exception handling
-
-
-def update_member(member_id: str, status: str, person: shared_models.PersonData) -> None:
+def add_member(status: str, person: dc.PersonData) -> None:
     """
-    Update the existing member with ID `provider_id` using the field values in `person`.
+    Add a new member to the ChocAn database.
+    Args:
+        status: New member's status. Must be either "A" for active or "I" for inactive.
+        person: A PersonData object with the member's personal information.
+    Raises:
+        pydantic.ValidationError: If a field has an invalid value. Use the .errors() method to get
+            a list of structured error dicts.
+        ValueError: If the database has already reached the maximum ID number or a field violates
+            a database constraint.
     """
     try:
-        new_member = MemberSchema(status=status, **asdict(person))  # validation
+        member_controllers.add_member(status=status, **asdict(person))
 
-        with db.atomic():
-            member_to_update = Members.get_by_id(member_id)
-            member_to_update.update(**new_member.model_dump())
+    except ValueError as e:
+        # TODO remove, since will be changed to specific exceptions
+        raise FieldValueError("Invalid field value") from e
 
-    except pydantic.ValidationError as e:
-        raise ValueError("Violated pydantic model") from e
-        # TODO better exception handling
+    except PeeweeException as e:
+        raise DatabaseError("Database transaction failed") from e
 
-    except peewee.DoesNotExist as e:
-        raise ValueError("No member with that ID exists.")
-        # TODO better exception handling
-        
-    except peewee.IntegrityError as e:
-        raise ValueError("Violated database model.") from e
-        # TODO better exception handling
+
+def update_member(member_id: str, status: str, person: dc.PersonData) -> None:
+    """
+    Update the existing member with the ID `member_id` using the field values in `person`.
+    Args:
+        member_id: The member ID of the member to update.
+        status: The member's new status. Must be either "A" for active or "I" for inactive.
+        person: A PersonData object with the member's personal information.
+    Raises:
+        pydantic.ValidationError: If a field has an invalid value. Use the .errors() method to get
+            a list of structured error dicts.
+        ValueError: If a member with that ID doesn't exist
+    """
+    try:
+        member_controllers.update_member(member_id=member_id, status=status, **asdict(person))
+
+    except ValueError as e:
+        # TODO remove, since will be changed to specific exceptions
+        raise FieldValueError("Invalid field value") from e
+
+    except PeeweeException as e:
+        raise DatabaseError("Database transaction failed") from e
 
 
 def remove_member(member_id: str) -> None:
     try:
-        id_int = int(shared_models.strip_leading_zeroes(member_id))
-        with db.atomic():
-            member = Members.get_by_id(member_id)
-            member.delete_instance()
+        member_controllers.delete_member(member_id)
 
-    except ValueError | TypeError:
-        raise ValueError(f"Could not convert {member_id} to integer.")
+    except ValueError as e:
+        # TODO remove, since will be changed to MemberNotFound exception
+        raise MemberNotFound from e
 
-    except peewee.DoesNotExist as e:
-        raise ValueError("No member with that ID exists.")
+    except PeeweeException as e:
+        raise DatabaseError("Database transaction failed") from e
     
 
 #---------------------------------#
 # Get Add/Update/Remove Providers #
 #---------------------------------#
 def get_providers() -> list[dict]:
-    with db.atomic():
-        providers = list(Providers.select().dicts())
-        
-    return providers
+    raise NotImplementedError("Not implemented yet!")
 
 
-def add_provider(person: shared_models.PersonData) -> None:
+def add_provider(person: dc.PersonData) -> None:
     """
     Add a new provider to the database.
     """
     try:
-        new_provider = MemberSchema(**asdict(person))  # validation
+        providers_controller.add_provider(**asdict(person))
 
-        with db.atomic():
-            Providers.create(**new_provider.model_dump())
+    except ValueError as e:
+        # TODO remove, since will be changed to specific exceptions
+        raise FieldValueError("Invalid field value") from e
 
-    except pydantic.ValidationError as e:
-        raise ValueError("Violated pydantic model") from e
-        # TODO better exception handling
-
-    except peewee.IntegrityError as e:
-        raise ValueError("Violated database model") from e
-        # TODO better exception handling
+    except PeeweeException as e:
+        raise DatabaseError("Database transaction failed") from e
 
 
-def update_provider(provider_id: str, person: shared_models.PersonData) -> None:
+def update_provider(provider_id: str, person: dc.PersonData) -> None:
     """
     Update the existing provider with ID `provider_id` using the field values in `person`.
     """
     try:
-        new_provider = ProviderSchema(provider_id=provider_id, **asdict(person))
+        providers_controller.update_provider(provider_id=provider_id, **asdict(person))
 
-        with db.atomic():
-            provider_to_update = Members.get_by_id(provider_id)
-            provider_to_update.update(**new_provider.model_dump())
-
-    except pydantic.ValidationError as e:
-        raise ValueError("Violated pydantic model") from e
-        # TODO better exception handling
-
-    except peewee.DoesNotExist as e:
+    except ValueError as e:
         raise ValueError("No member with that ID exists.")
-        # TODO better exception handling
         
-    except peewee.IntegrityError as e:
-        raise ValueError("Violated database model.") from e
+    except PeeweeException as e:
+        raise DatabaseError("Database transaction failed") from e
         # TODO better exception handling
 
 
 def remove_provider(provider_id: str) -> None:
     try:
-        with db.atomic():
-            provider = Providers.get_by_id(provider_id)
-            provider.delete_instance()
+        providers_controller.delete_provider(provider_id)
 
-    except ValueError | TypeError:
-        raise ValueError(f"Could not convert {provider_id} to integer.")
+    except ValueError as e:
+        # TODO remove, since will be changed to ProviderNotFound exception
+        raise ProviderNotFound from e
 
-    except peewee.DoesNotExist as e:
-        raise ValueError("No provider with that ID exists.")
+    except PeeweeException as e:
+        raise DatabaseError("Database transaction failed") from e
