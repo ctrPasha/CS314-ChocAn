@@ -7,7 +7,7 @@ class FieldValueError(Exception):
     """Raised when a value violates a field constraint"""
     def __init__(self, message: str, field: str):
         self.message = message
-        self.field = fields
+        self.field = field
         super().__init__(message)
 
 
