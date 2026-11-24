@@ -13,7 +13,7 @@ class FieldValueError(Exception):
 
 class MemberNotFound(Exception):
     """Raised when trying to retrieve a member ID that doesn't exist."""
-    def __init__(self, message: str, id: str):
+    def __init__(self, message: str, id: str = None):
         self.member_id = id
         self.message = message
         # self.message = f"Member with the ID {id} does not exist."
@@ -22,7 +22,7 @@ class MemberNotFound(Exception):
 
 class ProviderNotFound(Exception):
     """Raised when trying to retrieve a provider ID that doesn't exist."""
-    def __init__(self, message:str, id: str):
+    def __init__(self, message:str, id: str = None):
         self.provider_id = id
         self.message = message
         # self.message = f"Provider with the ID {id} does not exist."
