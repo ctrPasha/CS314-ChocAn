@@ -4,10 +4,14 @@ errors that can occur.
 """
 
 class FieldValueError(Exception):
-    """Raised when a value violates a field constraint, wrapping pydantic error details."""
-    def __init__(self, message: str, field: str):
+    """Raised when a value violates a field constraint."""
+    def __init__(self, message: str, fields: list[str]):
+        if fields is str:
+            fields = [fields]
+
+        self.message = message
+        self.field = fields
         super().__init__(message)
-        self.field = field
 
 
 class MemberNotFound(Exception):
