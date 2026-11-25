@@ -6,7 +6,7 @@ from peewee import PeeweeException, IntegrityError
 
 from controllers import member_controllers, providers_controller
 import provider_service
-import dataclasses as dc
+import chocan_dataclasses as dc
 from exceptions import (
     ProviderNotFound,
     MemberNotFound,
