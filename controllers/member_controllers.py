@@ -1,4 +1,5 @@
 from database.members.members_model import Members
+import exceptions as exc
 
 def generate_member_id() -> str:
     """
@@ -35,14 +36,14 @@ def update_member_status(member_id: str, new_status: str) -> None:
 	Raises value error if the member does not exist or if the new status is invalid.
 	"""
  
-	if new_status not in ['A', 'I']:
-		raise ValueError("Invalid status. Must be 'A' (Active) or 'I' (Inactive).")
+	if new_status not in ['A', 'I', 'S']:
+		raise exc.FieldValueError("Invalid status. Must be 'A' (Active), 'I' (Inactive), or 'S' (Suspended).", "status")
 
  
 	member = get_member_by_id(member_id)
 	
 	if member is None:
-		raise ValueError(f"Member with ID {member_id} does not exist.")
+		raise exc.MemberNotFound(f"Member with ID {member_id} does not exist.", member_id)
  
 	member.status = new_status
 	member.save()
@@ -58,10 +59,10 @@ def validate_member(member_id: str) -> bool:
 	member = get_member_by_id(member_id)
 	
 	if member is None:
-		raise ValueError(f"Member with ID {member_id} does not exist.")
+		raise exc.MemberNotFound(f"Member with ID {member_id} does not exist.", member_id)
 
-	if member.status not in ['A', 'I']:
-		raise ValueError(f"Member with ID {member_id} has an invalid status: {member.status}")
+	if member.status not in ['A', 'I', 'S']:
+		raise exc.FieldValueError(f"Member with ID {member_id} has an invalid status: {member.status}", "status")
  
 	return member.status == 'A'
 
@@ -72,22 +73,22 @@ def add_member(name: str, street_address: str, city: str, state: str, zip_code: 
 	"""
 
 	if not 1 <= len(name) <= 50:
-		raise ValueError("Name must be between 1 and 50 characters long.")
+		raise exc.FieldValueError("Name must be between 1 and 50 characters long.", "name")
 
 	if not 5 <= len(street_address) <= 100:
-		raise ValueError("Street address must be between 5 and 100 characters long.")
+		raise exc.FieldValueError("Street address must be between 5 and 100 characters long.", "street_address")
 
 	if not 1 <= len(city) <= 25:
-		raise ValueError("City must be between 1 and 25 characters long.")
+		raise exc.FieldValueError("City must be between 1 and 25 characters long.", "city")
 
 	if len(state) != 2:
-		raise ValueError("State must be a 2-character abbreviation.")
+		raise exc.FieldValueError("State must be a 2-character abbreviation.", "state")
 
 	if len(zip_code) != 5 or not zip_code.isdigit():
-		raise ValueError("Zip code must be a 5-digit number.")
+		raise exc.FieldValueError("Zip code must be a 5-digit number.", "zip_code")
 
-	if status not in ['A', 'I']:
-		raise ValueError("Invalid status. Must be 'A' (Active) or 'I' (Inactive).")
+	if status not in ['A', 'I', 'S']:
+		raise exc.FieldValueError("Invalid status. Must be 'A' (Active), 'I' (Inactive), or 'S' (Suspended).", "status")
 
 	# Use a transaction to group ID generation and member creation
 	# into one database operation, rolling back on failure.
@@ -109,30 +110,31 @@ def add_member(name: str, street_address: str, city: str, state: str, zip_code: 
 def update_member(member_id: str, name: str, street_address: str, city: str, state: str, zip_code: str) -> None:
 	"""
 	Update an existing member in the database.
-	Raises ValueError if the member does not exist or if any of the provided values are invalid.
+	Raises FieldValueError if any of the provided values are invalid.
+	Raises MemberNotFound if the member does not exist.
 	"""
 	if len(member_id) != 9 or not member_id.isdigit():
-		raise ValueError("Member ID must be a 9-digit number.")
+		raise exc.FieldValueError("Member ID must be a 9-digit number.", "member_id")
 
 	member = get_member_by_id(member_id)
 
 	if member is None:
-		raise ValueError(f"Member with ID {member_id} does not exist.")
+		raise exc.MemberNotFound(f"Member with ID {member_id} does not exist.", member_id)
 
 	if not 1 <= len(name) <= 50:
-		raise ValueError("Name must be between 1 and 50 characters long.")
+		raise exc.FieldValueError("Name must be between 1 and 50 characters long.", "name")
 
 	if not 5 <= len(street_address) <= 100:
-		raise ValueError("Street address must be between 5 and 100 characters long.")
+		raise exc.FieldValueError("Street address must be between 5 and 100 characters long.", "street_address")
 
 	if not 1 <= len(city) <= 25:
-		raise ValueError("City must be between 1 and 25 characters long.")
+		raise exc.FieldValueError("City must be between 1 and 25 characters long.", "city")
 
 	if len(state) != 2:
-		raise ValueError("State must be a 2-character abbreviation.")
+		raise exc.FieldValueError("State must be a 2-character abbreviation.", "state")
 
 	if len(zip_code) != 5 or not zip_code.isdigit():
-		raise ValueError("Zip code must be a 5-digit number.")
+		raise exc.FieldValueError("Zip code must be a 5-digit number.", "zip_code")
 
 	member.name = name
 	member.street_address = street_address
@@ -144,12 +146,12 @@ def update_member(member_id: str, name: str, street_address: str, city: str, sta
 def delete_member(member_id: str) -> None:
 	"""
 	Delete a member from the database.
-	Raises ValueError if the member does not exist.
+	Raises MemberNotFound if the member does not exist.
 	"""
 	member = get_member_by_id(member_id)
 
 	if member is None:
-		raise ValueError(f"Member with ID {member_id} does not exist.")
+		raise exc.MemberNotFound(f"Member with ID {member_id} does not exist.", member_id)
 
 	member.is_deleted = True
 	member.save()

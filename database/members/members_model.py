@@ -33,7 +33,7 @@ class Members(BaseModel):
         ],
     )
     
-    status = CharField(max_length = 1, constraints = [Check("status IN ('A', 'I')")])
+    status = CharField(max_length = 1, constraints = [Check("status IN ('A', 'I', 'S')")])
     
     is_deleted = BooleanField(default = False, constraints = [Check("is_deleted IN (0, 1)")])
 

@@ -67,3 +67,10 @@ def delete_service(service_code: str) -> None:
  
 	service.is_deleted = True
 	service.save()
+ 
+def get_all_services() -> list[Services]:
+	"""
+	Retrieve all non-deleted services from the database.
+	Returns a list of service objects.
+	"""
+	return list(Services.select().where(Services.is_deleted == False))
