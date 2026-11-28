@@ -17,7 +17,7 @@ class MemberNotFound(Exception):
         self.member_id = id
         self.message = message
         # self.message = f"Member with the ID {id} does not exist."
-        super.__init__(self.message)
+        super().__init__(self.message)
 
 
 class ProviderNotFound(Exception):
@@ -26,7 +26,7 @@ class ProviderNotFound(Exception):
         self.provider_id = id
         self.message = message
         # self.message = f"Provider with the ID {id} does not exist."
-        super.__init__(self.message)
+        super().__init__(self.message)
 
 
 class DatabaseError(Exception):
